@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CityInfo.API.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CityInfo.API.Controllers
@@ -107,6 +108,52 @@ namespace CityInfo.API.Controllers
       poi.Name = pointofInterest.Name;
 
       return NoContent();
+    }
+
+    [HttpPatch("{cityId}/pointsofinterest/{Id}")]
+    public IActionResult PartiallyUpdatePointsOfInterest(int cityId, int id,
+      [FromBody] JsonPatchDocument<PointOfInterestForUpdateDto> patchDoc)
+    {
+      if (patchDoc == null)
+      {
+        return BadRequest();
+      }
+      var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
+      if (city==null)
+      {
+        return NotFound();
+      }
+      var poi = city.PointsOfInterest.FirstOrDefault(p => p.Id == id);
+      if (poi==null)
+      {
+        return NotFound();
+      }
+
+      var poiPatch = new PointOfInterestForUpdateDto();
+      poiPatch.Description = poi.Description;
+      poiPatch.Name = poi.Name;
+      patchDoc.ApplyTo(poiPatch, ModelState);
+      if (!ModelState.IsValid)
+      {
+        return BadRequest(ModelState);
+      }
+
+      // this is to validate the fields according to the Dto attributes.
+      TryValidateModel(poiPatch);
+
+      if (poiPatch.Name == poiPatch.Description)
+      {
+        ModelState.AddModelError("Description", "Name and Description cannot be the same.");
+      }
+
+      if (!ModelState.IsValid)
+      {
+        return BadRequest(ModelState);
+      }
+
+      poi.Name = poiPatch.Name;
+      poi.Description = poiPatch.Description;
+      return NoContent(); 
     }
   }
 }
