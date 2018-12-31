@@ -65,10 +65,13 @@ namespace CityInfo.API.Controllers
       {
         return NotFound();
       }
-      var poiForAdd = new PointOfInterestDto();
-      poiForAdd.Id = 99;
-      poiForAdd.Name = pointofInterest.Name;
-      poiForAdd.Description = pointofInterest.Description;
+      var maxPointOfInterest = CitiesDataStore.Current.Cities.SelectMany(x => x.PointsOfInterest).Max(p => p.Id);
+      var poiForAdd = new PointOfInterestDto
+      {
+        Id = ++maxPointOfInterest,
+        Name = pointofInterest.Name,
+        Description = pointofInterest.Description
+      };
       city.PointsOfInterest.Add(poiForAdd);
 
       return CreatedAtRoute("GetPointOfInterest", new { cityId, id = poiForAdd.Id }, poiForAdd);
