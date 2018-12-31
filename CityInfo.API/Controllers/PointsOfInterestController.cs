@@ -76,5 +76,37 @@ namespace CityInfo.API.Controllers
 
       return CreatedAtRoute("GetPointOfInterest", new { cityId, id = poiForAdd.Id }, poiForAdd);
     }
+
+    [HttpPut("{cityId}/pointsofinterest/{Id}")]
+    public IActionResult UpdatePointsOfInterest(int cityId, int id,
+                        [FromBody] PointOfInterestForCreationDto pointofInterest)
+    {
+      if (pointofInterest == null)
+      {
+        return BadRequest();
+      }
+      if (pointofInterest.Name == pointofInterest.Description)
+      {
+        ModelState.AddModelError("Description", "Name and Description cannot be the same.");
+      }
+      if (!ModelState.IsValid)
+      {
+        return BadRequest(ModelState);
+      }
+      var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
+      if (city == null)
+      {
+        return NotFound();
+      }
+      var poi = city.PointsOfInterest.FirstOrDefault(p => p.Id == id);
+      if (poi == null)
+      {
+        return NotFound();
+      }
+      poi.Description = pointofInterest.Description;
+      poi.Name = pointofInterest.Name;
+
+      return NoContent();
+    }
   }
 }
