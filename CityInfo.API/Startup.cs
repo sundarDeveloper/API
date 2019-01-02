@@ -23,7 +23,14 @@ namespace CityInfo.API
       services.AddMvc()
               .AddMvcOptions( o => o.OutputFormatters.Add(
                               new XmlDataContractSerializerOutputFormatter()));
-      services.AddTransient<LocalMailService>();
+      // services.AddTransient<LocalMailService>();
+      // services.AddTransient<IMailService,LocalMailService>();
+      // services.AddTransient<IMailService, CloudMailService>();
+#if DEBUG
+      services.AddTransient<IMailService, LocalMailService>();
+#else
+      services.AddTransient<IMailService, CloudMailService>();
+#endif
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
