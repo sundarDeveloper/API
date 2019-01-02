@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using CityInfo.API.Models;
+using CityInfo.API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -10,10 +11,12 @@ namespace CityInfo.API.Controllers
   public class PointsOfInterestController : Controller
   {
     private ILogger<PointsOfInterestController> _logger;
+    private LocalMailService _localMailService;
 
-    public PointsOfInterestController(ILogger<PointsOfInterestController> logger)
+    public PointsOfInterestController(ILogger<PointsOfInterestController> logger, LocalMailService localMailService)
     {
       _logger = logger;
+      _localMailService = localMailService;
     }
     [HttpGet("{cityId}/pointsofinterest")]
     public IActionResult GetPointsOfInterest(int cityId)
@@ -136,6 +139,7 @@ namespace CityInfo.API.Controllers
         return NotFound();
       }
       city.PointsOfInterest.Remove(poi);
+      _localMailService.Send($"POI Delete", $" POI Delete {poi.Name}");
       return NoContent();
     }
   }
